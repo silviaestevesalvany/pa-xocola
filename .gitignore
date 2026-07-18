@@ -1,0 +1,14 @@
+# Sistema
+.DS_Store
+Thumbs.db
+
+# Dependències
+node_modules/
+
+# Handoff original (no forma part del web desplegat)
+_extract/
+*.zip
+
+# Entorn
+.env
+.vercel
