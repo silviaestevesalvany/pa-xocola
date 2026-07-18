@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://pa-xocola.example/sitemap.xml
+Sitemap: https://silviaestevesalvany.github.io/pa-xocola/sitemap.xml
