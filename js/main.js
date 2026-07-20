@@ -109,6 +109,24 @@
     window.addEventListener("resize", set, { passive: true });
   })();
 
+  /* ---- Sliders (marquee): pausa mentre es manté premut en mòbil ---- */
+  (function () {
+    var masks = document.querySelectorAll(".marquee-mask");
+    Array.prototype.forEach.call(masks, function (mask) {
+      var track = mask.querySelector(".marquee-track");
+      if (!track) return;
+      var pause = function () {
+        track.style.animationPlayState = "paused";
+      };
+      var resume = function () {
+        track.style.animationPlayState = "running";
+      };
+      mask.addEventListener("touchstart", pause, { passive: true });
+      mask.addEventListener("touchend", resume, { passive: true });
+      mask.addEventListener("touchcancel", resume, { passive: true });
+    });
+  })();
+
   /* ---- Vídeo hero: moviment ping-pong (endavant i enrere) ---- */
   (function () {
     var v = document.getElementById("heroVideo");
