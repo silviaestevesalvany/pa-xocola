@@ -203,4 +203,89 @@
     window.addEventListener("scroll", onScroll, { passive: true });
     onScroll();
   })();
+
+  /* ---- Estat "Obert ara / Tancat" segons l'horari (Europe/Madrid) ---- */
+  (function () {
+    var nodes = document.querySelectorAll(".open-pill");
+    if (!nodes.length) return;
+
+    // Horari en minuts des de mitjanit, indexat pel dia JS (0=diumenge ... 6=dissabte)
+    var schedule = {
+      0: [480, 840], // diumenge 8:00–14:00
+      1: [420, 1230], // dilluns 7:00–20:30
+      2: [420, 1230],
+      3: [420, 1230],
+      4: [420, 1230],
+      5: [420, 1230],
+      6: [480, 1230] // dissabte 8:00–20:30
+    };
+    var dayNames = ["diumenge", "dilluns", "dimarts", "dimecres", "dijous", "divendres", "dissabte"];
+
+    function madridNow() {
+      try {
+        var f = new Intl.DateTimeFormat("en-GB", {
+          timeZone: "Europe/Madrid",
+          weekday: "short",
+          hour: "2-digit",
+          minute: "2-digit",
+          hour12: false
+        });
+        var map = {};
+        f.formatToParts(new Date()).forEach(function (p) {
+          map[p.type] = p.value;
+        });
+        var wd = { Sun: 0, Mon: 1, Tue: 2, Wed: 3, Thu: 4, Fri: 5, Sat: 6 };
+        var day = wd[map.weekday];
+        var hour = parseInt(map.hour, 10) % 24; // "24" a mitjanit en alguns entorns
+        var min = parseInt(map.minute, 10);
+        if (day == null || isNaN(hour) || isNaN(min)) return null;
+        return { day: day, minutes: hour * 60 + min };
+      } catch (e) {
+        return null;
+      }
+    }
+
+    function fmt(mins) {
+      var h = Math.floor(mins / 60);
+      var m = mins % 60;
+      return h + ":" + (m < 10 ? "0" + m : m);
+    }
+
+    function nextOpening(day, minutes) {
+      var today = schedule[day];
+      if (today && minutes < today[0]) return { label: "avui", opens: today[0] };
+      for (var i = 1; i <= 7; i++) {
+        var d = (day + i) % 7;
+        if (schedule[d]) return { label: i === 1 ? "demà" : dayNames[d], opens: schedule[d][0] };
+      }
+      return null;
+    }
+
+    function render() {
+      var now = madridNow();
+      var isOpen = false;
+      var text;
+      if (now) {
+        var s = schedule[now.day];
+        if (s && now.minutes >= s[0] && now.minutes < s[1]) {
+          isOpen = true;
+          text = "Obert ara · tanquem a les " + fmt(s[1]);
+        } else {
+          var nx = nextOpening(now.day, now.minutes);
+          text = nx ? "Tancat ara · obrim " + nx.label + " a les " + fmt(nx.opens) : "Tancat ara";
+        }
+      } else {
+        text = "Obert de dilluns a diumenge";
+      }
+      Array.prototype.forEach.call(nodes, function (el) {
+        var t = el.querySelector(".txt");
+        if (t) t.textContent = text;
+        el.classList.toggle("is-open", isOpen);
+        el.classList.add("is-visible");
+      });
+    }
+
+    render();
+    setInterval(render, 60000);
+  })();
 })();
