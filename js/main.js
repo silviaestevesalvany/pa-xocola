@@ -63,7 +63,7 @@
   (function () {
     var els = Array.prototype.slice.call(document.querySelectorAll("[data-reveal]"));
     if (!els.length) return;
-    if (reduce || !("IntersectionObserver" in window)) {
+    if (!("IntersectionObserver" in window)) {
       els.forEach(function (e) {
         e.style.opacity = "1";
         e.style.transform = "none";
@@ -115,12 +115,16 @@
     if (!v) return;
     v.muted = true;
     v.playsInline = true;
-    if (reduce) {
-      try {
-        v.removeAttribute("autoplay");
-        v.pause();
-        v.currentTime = 0;
-      } catch (e) {}
+    // Mòbil / tàctil: bucle simple (el seek invers del ping-pong no és fiable en mòbil)
+    if (window.matchMedia("(hover:none), (max-width:767px)").matches) {
+      v.loop = true;
+      var play = function () {
+        v.play().catch(function () {});
+      };
+      v.addEventListener("loadeddata", play);
+      play();
+      // reintenta a la primera interacció per si l'autoplay estava bloquejat
+      document.addEventListener("touchstart", play, { passive: true, once: true });
       return;
     }
     var dir = 1;
@@ -156,7 +160,6 @@
 
   /* ---- Parallax: fos del hero i desplaçament de la galeria ---- */
   (function () {
-    if (reduce) return;
     var bg = document.getElementById("heroBg");
     var figs = Array.prototype.slice.call(document.querySelectorAll(".gallery-fig"));
     if (!bg && !figs.length) return;
